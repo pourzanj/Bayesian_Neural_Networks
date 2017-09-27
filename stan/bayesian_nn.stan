@@ -22,30 +22,33 @@ data {
 parameters {
   vector[2] W_raw[2];
   //unit_vector[2] W_raw[2];
-  //row_vector<lower=0>[2] c;
-  //vector[2] w;
+  //row_vector[2] c;
+  ordered[2] c_raw;
+  vector[2] w;
 }
 transformed parameters {
+  row_vector[2] c;
   matrix[2,2] W;
   W[,1] = W_raw[1];
   W[,2] = W_raw[2];
+  c = to_row_vector(c_raw);
 }
 model {
-  row_vector[2] c;
+  //row_vector[2] c;
   matrix[N,2] h;
-  vector[2] w = to_vector({1,-2});
+  //vector[2] w = to_vector({1,-2});
   
   to_array_1d(W_raw[1]) ~ normal(0,1);
   to_array_1d(W_raw[2]) ~ normal(0,1);
-  c = to_row_vector({0,5});
-  h = log1p_exp(X*W - rep_matrix(c,N));
+  //c = to_row_vector({0,5});
+  h = relu(X*W - rep_matrix(c,N));
   //c[1] ~ normal(0,10);
   //c[2] ~ normal(-1,10);
   y ~ normal(h*w, 0.1);
 }
 generated quantities {
-  //row_vector[2] c;
-  //matrix[N,2] hhat;
-  //c = to_row_vector({0,-1});
-  //hhat = X*W + rep_matrix(c,N);
+  vector[N] yhat;
+  matrix[N,2] h;
+  h = relu(X*W - rep_matrix(c,N));
+  yhat = h*w;
 }
