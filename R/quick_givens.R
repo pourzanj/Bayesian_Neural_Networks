@@ -20,6 +20,7 @@ area_form <- function(theta) {
 }
 
 fit <- stan(file = "stan/quick_givens.stan", data = list(D = 3), chains = 1, iter = 20)
+fit_old <- stan(file = "stan/test_stiefel.stan", data = list(n = 3), chains = 1, iter = 20000)
 
 s <- extract(fit)
 s$theta_principal %>% qplot
