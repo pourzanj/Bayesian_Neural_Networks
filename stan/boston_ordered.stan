@@ -30,9 +30,14 @@ parameters {
   matrix[D,50] W;
   
   vector[50] beta;
-  vector[50] c;
+  ordered[50] c_raw;
   
   real<lower=0> sigma;
+}
+
+transformed parameters{
+  row_vector[50] c;
+  c = to_row_vector(c_raw);
 }
 
 model {
