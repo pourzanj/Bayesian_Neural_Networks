@@ -21,8 +21,8 @@ data {
 }
 parameters {
   real<lower=-1,upper=1> angles[2];
-  //row_vector<lower=0>[2] c;
-  //vector[2] w;
+  ordered[2] c_raw;
+  vector[2] w;
 }
 transformed parameters {
   matrix[2,2] W;
@@ -37,7 +37,7 @@ model {
   vector[2] w = to_vector({1,-2});
   
   c = to_row_vector({0,5});
-  h = log1p_exp(X*W - rep_matrix(c,N));
+  h = relu(X*W - rep_matrix(c,N));
   //c[1] ~ normal(0,10);
   //c[2] ~ normal(-1,10);
   y ~ normal(h*w, 0.1);

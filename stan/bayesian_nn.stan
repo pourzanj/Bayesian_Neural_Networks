@@ -38,17 +38,24 @@ model {
   matrix[N,2] h;
   //vector[2] w = to_vector({1,-2});
   
-  to_array_1d(W_raw[1]) ~ normal(0,1);
-  to_array_1d(W_raw[2]) ~ normal(0,1);
+  to_array_1d(W_raw[1]) ~ normal(0,0.81);
+  to_array_1d(W_raw[2]) ~ normal(0,0.81);
   //c = to_row_vector({0,5});
   h = relu(X*W - rep_matrix(c,N));
   //c[1] ~ normal(0,10);
   //c[2] ~ normal(-1,10);
-  y ~ normal(h*w, 0.1);
+  y ~ normal(h*w, 1.0);
 }
 generated quantities {
-  vector[N] yhat;
-  matrix[N,2] h;
-  h = relu(X*W - rep_matrix(c,N));
-  yhat = h*w;
+  vector[1] yhat;
+  real theta1;
+  real theta2;
+  real beta1;
+  real beta2;
+  yhat = (relu(to_matrix(to_row_vector({-10,10})*W - c)))*w;
+  theta1 = atan2(W[2,1],W[1,1]);
+  theta2 = atan2(W[2,2],W[1,2]);
+
+  beta1 = w[1]*sqrt(W[1,1]^2 + W[2,1]^2);
+  beta2 = w[2]*sqrt(W[1,2]^2 + W[2,2]^2);
 }
