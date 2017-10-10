@@ -30,7 +30,7 @@ parameters {
   matrix[D,50] W;
   
   vector[50] beta;
-  vector[50] c;
+  row_vector[50] c;
   
   real<lower=0> sigma;
 }
@@ -40,7 +40,7 @@ model {
   
   to_array_1d(W) ~ double_exponential(0, 1);
   beta ~ normal(0,1);
-  c_raw ~ normal(0,1);
+  c ~ normal(0,1);
 
   h = relu(X*W - rep_matrix(c,N));
   y ~ normal(h*beta, sigma);
