@@ -13,6 +13,8 @@ create_test_train_split <- function(i) {
 }
 
 test_train_splits <- map(1:10, create_test_train_split)
+test_train_splits_2 <- map(1:10, create_test_train_split)
+test_train_splits_3 <- map(1:10, create_test_train_split)
 
 boston_model <- stan_model(file = "stan/boston.stan")
 run_boston <- function(test_train_split) {
@@ -20,7 +22,7 @@ run_boston <- function(test_train_split) {
   train <- test_train_split$train
   test <- test_train_split$test
   
-  sampling(boston_model, chains = 1, iter = 1000, refresh = 10,
+  sampling(boston_model, chains = 1, iter = 1, refresh = 10,
        data = list(N = nrow(train), D = ncol(train)-1,
                    X = select(train,-medv) %>% as.matrix,
                    y = train$medv, N_test = nrow(test),
@@ -36,7 +38,7 @@ run_boston_ordered <- function(test_train_split) {
   train <- test_train_split$train
   test <- test_train_split$test
   
-  sampling(boston_ordered_model, chains = 1, iter = 1000, refresh = 10,
+  sampling(boston_ordered_model, chains = 1, iter = 10, refresh = 10,
        data = list(N = nrow(train), D = ncol(train)-1,
                    X = select(train,-medv) %>% as.matrix,
                    y = train$medv, N_test = nrow(test),
@@ -61,6 +63,16 @@ fits_boston <- mclapply(test_train_splits,run_boston)
 fits_boston_ordered <- mclapply(test_train_splits,run_boston_ordered)
 fits_boston_unconstrained <- mclapply(test_train_splits,run_boston_unconstrained)
 
+fits_boston_2 <- mclapply(test_train_splits_2,run_boston)
+fits_boston_ordered_2 <- mclapply(test_train_splits_2,run_boston_ordered)
+fits_boston_unconstrained_2 <- mclapply(test_train_splits_2,run_boston_unconstrained)
+
+fits_boston_3 <- mclapply(test_train_splits_3,run_boston)
+fits_boston_ordered_3 <- mclapply(test_train_splits_3,run_boston_ordered)
+fits_boston_unconstrained_3 <- mclapply(test_train_splits_3,run_boston_unconstrained)
+
+
+
 stan_fit_to_summary <- function(fit, test_train_split) {
   s <- extract(fit)
   q2 <- s$yhat %>% apply(2, function(x) quantile(x,probs = c(0.025)))
@@ -73,9 +85,9 @@ stan_fit_to_summary <- function(fit, test_train_split) {
   yhat %>% summarize(sse = sqrt(sum(err)/101), pct_outliers = mean(!outlier))
 }
 
-map2(fits_boston, test_train_splits, stan_fit_to_summary) %>% bind_rows
-map2(fits_boston_ordered, test_train_splits, stan_fit_to_summary) %>% bind_rows
-map2(fits_boston_unconstrained, test_train_splits, stan_fit_to_summary) %>% bind_rows
+map2(fits_boston, test_train_splits, stan_fit_to_summary) %>% bind_rows# %>% summarize_all(funs(mean,sd))
+map2(fits_boston_ordered, test_train_splits, stan_fit_to_summary) %>% bind_rows# %>% summarize_all(funs(mean,sd))
+map2(fits_boston_unconstrained, test_train_splits, stan_fit_to_summary) %>% bind_rows %>% summarize_all(funs(mean,sd))
 
 m <- stan_model(file = "stan/boston.stan")
 v <- vb(m, data = list(N = nrow(bos_train), D = ncol(bos_train)-1, X = select(bos_train,-medv) %>% as.matrix, y = bos_train$medv, N_test = nrow(bos_test), X_test = select(bos_test,-medv) %>% as.matrix),
